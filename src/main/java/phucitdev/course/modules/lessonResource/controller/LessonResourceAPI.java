@@ -19,15 +19,15 @@ import java.util.UUID;
 public class LessonResourceAPI {
     @Autowired
     LessonResourceService lessonResourceService;
-
-    @GetMapping("/{lessonId}/lessonResources")
-    public ResponseEntity<?> getLessonResource(@PathVariable("lessonId") UUID lessonId) {
-        List<GetLessonResourceResponse> response = lessonResourceService.getLessonResources(lessonId);
-        return ResponseEntity.ok().body(response);
-    }
     @PostMapping("/lessonResource")
     public ResponseEntity<?> createLessonResource(@Valid @RequestBody CreateLessonResourceRequest createLessonResourceRequest) {
         CreateLessonResourceResponse createLessonResourceResponse = lessonResourceService.createLessonResource(createLessonResourceRequest);
         return ResponseEntity.ok().body(createLessonResourceResponse);
     }
+    @GetMapping("/{snapLessonId}/lessonResources")
+    public ResponseEntity<?> getLessonResource(@PathVariable("snapLessonId") UUID snapLessonId) {
+        List<GetLessonResourceResponse> response = lessonResourceService.getLessonResources(snapLessonId);
+        return ResponseEntity.ok().body(response);
+    }
+
 }

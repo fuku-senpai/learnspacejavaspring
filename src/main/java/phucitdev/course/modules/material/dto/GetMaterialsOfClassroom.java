@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
@@ -13,5 +14,8 @@ public class GetMaterialsOfClassroom {
     private UUID id;
     private String title;
     private String description;
-    private Integer totalLessons;
+    private Integer order;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
 }

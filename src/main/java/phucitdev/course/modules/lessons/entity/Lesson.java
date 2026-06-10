@@ -19,12 +19,4 @@ public class Lesson extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "material_id")
     private Material material;
-    @OneToMany(
-            mappedBy = "lesson",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
-    private List<LessonResource> resources;
-    @OneToMany(mappedBy = "lesson")
-    private List<LessonResource> lessonResources;
 }

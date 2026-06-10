@@ -12,7 +12,7 @@ public class CreateLessonVideoRequest {
     @NotBlank(message = "Tiêu đề không được để trống")
     private String title;
     @NotBlank(message = "Video không được để trống")
-    private String videoUrl;
+    private String fileKey;
     @NotNull
-    private UUID lessonId;
+    private UUID snapLessonId;
 }

@@ -25,9 +25,10 @@ public class LessonVideoAPI {
         CreateLessonVideoResponse createLessonVideoResponse = lessonVideoService.createLessonVideo(createLessonVideoRequest);
         return ResponseEntity.ok(createLessonVideoResponse);
     }
-    @GetMapping("/{lessonId}/lessonVideos")
-    public ResponseEntity<?> getLessonVideos(@PathVariable UUID lessonId){
-        List<GetLessonVideoResponse> response = lessonVideoService.getVideos(lessonId);
+    @GetMapping("/{snapLessonId}/lessonVideos")
+    public ResponseEntity<?> getLessonVideos(@PathVariable UUID snapLessonId){
+        List<GetLessonVideoResponse> response = lessonVideoService.getVideos(snapLessonId);
         return ResponseEntity.ok(response);
     }
+
 }

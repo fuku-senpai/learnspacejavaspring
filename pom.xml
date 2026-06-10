@@ -105,6 +105,13 @@
             <version>5.1.0</version>
             <scope>compile</scope>
         </dependency>
+        <!-- Source: https://mvnrepository.com/artifact/software.amazon.awssdk/s3 -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <version>2.46.5</version>
+            <scope>compile</scope>
+        </dependency>
 	</dependencies>
 
 	<build>

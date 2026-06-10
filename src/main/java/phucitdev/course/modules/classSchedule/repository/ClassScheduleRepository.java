@@ -11,11 +11,18 @@ import java.util.List;
 import java.util.UUID;
 
 public interface ClassScheduleRepository extends JpaRepository<ClassSchedule, UUID> {
-    boolean existsByClassroomIdAndDayOfWeekAndStartTimeAndEndTime(
+    boolean existsByClassroomIdAndDayOfWeekAndStartTimeAndEndTimeAndIsDeletedFalse(
             UUID classroomId,
             DayOfWeek dayOfWeek,
             LocalTime startTime,
             LocalTime endTime
+    );
+    boolean existsByClassroomIdAndDayOfWeekAndStartTimeAndEndTimeAndIdNotAndIsDeletedFalse(
+            UUID classroomId,
+            DayOfWeek dayOfWeek,
+            LocalTime startTime,
+            LocalTime endTime,
+            UUID id
     );
     @Query("""
     SELECT new phucitdev.course.modules.classSchedule.dto.GetClassScheduleResponse(
@@ -28,7 +35,8 @@ public interface ClassScheduleRepository extends JpaRepository<ClassSchedule, UU
         cs.meetingUrl
     )
     FROM ClassSchedule cs
-    WHERE cs.classroom.id = :classroomId
+    WHERE cs.isDeleted = false
+    AND cs.classroom.id = :classroomId
 """)
     List<GetClassScheduleResponse> getClassSchedule(UUID classroomId);
     List<ClassSchedule> findByClassroomId(UUID classroomId);

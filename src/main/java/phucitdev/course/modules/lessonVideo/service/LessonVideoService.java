@@ -10,5 +10,5 @@ import java.util.UUID;
 
 public interface LessonVideoService {
     CreateLessonVideoResponse createLessonVideo(CreateLessonVideoRequest createLessonVideoRequest);
-    List<GetLessonVideoResponse> getVideos(UUID lessonId);
+    List<GetLessonVideoResponse> getVideos(UUID snapLessonId);
 }

@@ -18,5 +18,5 @@ public class CreateLessonResourceRequest {
     private ResourceType type;
     private List<String> urls;
     private String note;
-    private UUID lessonId;
+    private UUID snapLessonId;
 }

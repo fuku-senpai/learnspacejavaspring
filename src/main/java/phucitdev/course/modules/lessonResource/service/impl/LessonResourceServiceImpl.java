@@ -9,8 +9,8 @@ import phucitdev.course.modules.lessonResource.dto.GetLessonResourceResponse;
 import phucitdev.course.modules.lessonResource.entity.LessonResource;
 import phucitdev.course.modules.lessonResource.repository.LessonResourceRepository;
 import phucitdev.course.modules.lessonResource.service.LessonResourceService;
-import phucitdev.course.modules.lessons.entity.Lesson;
-import phucitdev.course.modules.lessons.repository.LessonRepository;
+import phucitdev.course.modules.snap_lesson.entity.SnapLesson;
+import phucitdev.course.modules.snap_lesson.repository.SnapLessonRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,16 +21,16 @@ public class LessonResourceServiceImpl implements LessonResourceService {
     @Autowired
     LessonResourceRepository lessonResourceRepository;
     @Autowired
-    LessonRepository lessonRepository;
+    SnapLessonRepository snapLessonRepository;
     @Override
     public CreateLessonResourceResponse createLessonResource(CreateLessonResourceRequest createLessonResourceRequest) {
-        Lesson lesson = lessonRepository.findById(createLessonResourceRequest.getLessonId()).orElseThrow(() ->
-                new NotFoundException("LessonId không tìm thấy"));
+        SnapLesson snapLesson = snapLessonRepository.findById(createLessonResourceRequest.getSnapLessonId()).orElseThrow(() ->
+                new NotFoundException("SnapLessonId không tìm thấy"));
         LessonResource lessonResource = new LessonResource();
         lessonResource.setTitle(createLessonResourceRequest.getTitle());
         lessonResource.setType(createLessonResourceRequest.getType());
         lessonResource.setNote(createLessonResourceRequest.getNote());
-        lessonResource.setLesson(lesson);
+        lessonResource.setSnapLesson(snapLesson);
         List<LessonResourceUrl>  lessonResourceUrls = new ArrayList<>();
         for(String url: createLessonResourceRequest.getUrls()){
             LessonResourceUrl lessonResourceUrl = new LessonResourceUrl();
@@ -44,16 +44,10 @@ public class LessonResourceServiceImpl implements LessonResourceService {
     }
 
     @Override
-    public List<GetLessonResourceResponse> getLessonResources(UUID lessonId) {
-
-        lessonRepository.findById(lessonId)
-                .orElseThrow(() ->
-                        new NotFoundException(
-                                "Lesson không tồn tại"
-                        ));
-
+    public List<GetLessonResourceResponse> getLessonResources(UUID snapLessonId) {
+        snapLessonRepository.findById(snapLessonId).orElseThrow(() -> new NotFoundException("SnapLesson không tồn tại"));
         return lessonResourceRepository
-                .getLessonResources(lessonId)
+                .getLessonResources(snapLessonId)
                 .stream()
                 .map(lr -> new GetLessonResourceResponse(
                         lr.getId(),

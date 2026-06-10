@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import phucitdev.course.commo.base.BaseEntity;
 import phucitdev.course.modules.lessons.entity.Lesson;
+import phucitdev.course.modules.snap_lesson.entity.SnapLesson;
 
 @Getter
 @Setter
@@ -16,10 +17,10 @@ import phucitdev.course.modules.lessons.entity.Lesson;
 public class LessonVideo extends BaseEntity {
     @Column(nullable = false)
     private String title;
-    @Column(nullable = false,
-            columnDefinition = "TEXT")
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String videoUrl;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "lesson_id")
-    private Lesson lesson;
+    @JoinColumn(name = "snap_lesson_id", nullable = false)
+    private SnapLesson snapLesson;
+    private String fileKey;
 }

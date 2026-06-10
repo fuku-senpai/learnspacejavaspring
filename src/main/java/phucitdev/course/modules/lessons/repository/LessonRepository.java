@@ -19,4 +19,5 @@ public interface LessonRepository extends JpaRepository<Lesson, UUID> {
     List<LessonResponse> getLessonsByMaterialId(
             UUID materialId
     );
+    List<Lesson> findAllByMaterialIdAndIsDeletedFalseOrderByLessonOrderAsc(UUID materialId);
 }

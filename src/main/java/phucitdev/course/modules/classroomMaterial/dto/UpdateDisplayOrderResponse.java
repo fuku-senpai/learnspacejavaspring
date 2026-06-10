@@ -1,0 +1,12 @@
+package phucitdev.course.modules.classroomMaterial.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class UpdateDisplayOrderResponse {
+    private String message;
+}

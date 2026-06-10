@@ -72,4 +72,23 @@ public interface ClassroomRepository extends JpaRepository<Classroom, UUID> {
     boolean existsByNameIgnoreCaseAndIsDeletedFalse(
             String name
     );
+    Optional<Classroom> findByIdAndIsDeletedFalse(UUID classroomId);
+
+
+    @Query("""
+    SELECT c
+    FROM Classroom c
+    WHERE c.isDeleted = false
+    AND (
+        :hasTeacher IS NULL
+        OR (:hasTeacher = true AND c.teacherProfile IS NOT NULL)
+        OR (:hasTeacher = false AND c.teacherProfile IS NULL)
+    )
+""")
+    Page<Classroom> findAllClassroomsWithTeacherFilter(@Param("hasTeacher") Boolean hasTeacher, Pageable pageable);
+
+
+    List<Classroom> findByTeacherProfileIdAndIsDeletedFalse(
+            UUID teacherId
+    );
 }

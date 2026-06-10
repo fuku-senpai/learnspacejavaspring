@@ -13,9 +13,9 @@ public interface LessonResourceRepository extends JpaRepository<LessonResource, 
     SELECT DISTINCT lr
     FROM LessonResource lr
     LEFT JOIN FETCH lr.lessonResourceUrls
-    WHERE lr.lesson.id = :lessonId
+    WHERE lr.snapLesson.id = :snapLessonId
 """)
     List<LessonResource> getLessonResources(
-            UUID lessonId
+            UUID snapLessonId
     );
 }
