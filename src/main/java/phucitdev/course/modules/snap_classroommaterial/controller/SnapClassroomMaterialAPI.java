@@ -7,9 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import phucitdev.course.modules.snap_classroommaterial.dto.UpdateMaterialOrderRequest;
 import phucitdev.course.modules.snap_classroommaterial.service.SnapClassroomMaterialService;
-
 import java.util.UUID;
-
 @RestController
 @CrossOrigin("*")
 @RequestMapping("/api/")
@@ -26,6 +24,11 @@ public class SnapClassroomMaterialAPI {
                         )
         );
     }
+    @DeleteMapping("/{snapClassroomMaterialId}/materials")
+    public ResponseEntity<?> deleteMaterialsByClassroomId(@PathVariable UUID snapClassroomMaterialId) {
+        return ResponseEntity.ok(snapClassroomMaterialService.deleteMaterialBySnapClassroomMaterialId(snapClassroomMaterialId));
+    }
+
     @PutMapping("/{snapMaterialId}/order")
     public ResponseEntity<?> updateMaterialOrder(@PathVariable UUID snapMaterialId,
             @Valid @RequestBody UpdateMaterialOrderRequest request

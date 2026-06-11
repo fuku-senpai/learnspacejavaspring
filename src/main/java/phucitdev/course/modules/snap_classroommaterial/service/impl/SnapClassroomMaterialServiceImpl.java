@@ -2,13 +2,12 @@ package phucitdev.course.modules.snap_classroommaterial.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import phucitdev.course.commo.exception.auth.BadRequestException;
 import phucitdev.course.commo.exception.classroom.NotFoundException;
 import phucitdev.course.modules.classrooms.entity.Classroom;
+import phucitdev.course.modules.classrooms.entity.ClassroomStatus;
 import phucitdev.course.modules.classrooms.repository.ClassroomRepository;
-import phucitdev.course.modules.snap_classroommaterial.dto.GetSnapClassroomMaterialsResponse;
-import phucitdev.course.modules.snap_classroommaterial.dto.SnapClassroomMaterialItemResponse;
-import phucitdev.course.modules.snap_classroommaterial.dto.UpdateMaterialOrderRequest;
-import phucitdev.course.modules.snap_classroommaterial.dto.UpdateMaterialOrderResponse;
+import phucitdev.course.modules.snap_classroommaterial.dto.*;
 import phucitdev.course.modules.snap_classroommaterial.entity.SnapClassroomMaterial;
 import phucitdev.course.modules.snap_classroommaterial.repository.SnapClassroomMaterialRepository;
 import phucitdev.course.modules.snap_classroommaterial.service.SnapClassroomMaterialService;
@@ -104,5 +103,22 @@ public class SnapClassroomMaterialServiceImpl implements SnapClassroomMaterialSe
         return new UpdateMaterialOrderResponse(
                 "Cập nhật thứ tự thành công"
         );
+    }
+
+    @Override
+    public DeleteSnapClassroomMaterialsResponse deleteMaterialBySnapClassroomMaterialId(UUID deleteMaterialBySnapClassroomMaterialId) {
+        SnapClassroomMaterial snapClassroomMaterial = snapClassroomMaterialRepository.findByIdAndIsDeletedFalse(deleteMaterialBySnapClassroomMaterialId)
+                .orElseThrow(() ->
+                        new NotFoundException("Chủ đề học không tồn tại")
+                );
+        Classroom classroom = snapClassroomMaterial.getClassroom();
+        if(classroom.getStatus() == ClassroomStatus.ACTIVE) {
+            throw new BadRequestException(
+                    "Lớp học đang hoạt động, không thể xoá tài liệu!"
+            );
+        }
+        snapClassroomMaterial.setIsDeleted(true);
+        snapClassroomMaterialRepository.save(snapClassroomMaterial);
+       return new DeleteSnapClassroomMaterialsResponse("Xoá thành công!");
     }
 }

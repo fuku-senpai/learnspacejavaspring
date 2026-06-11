@@ -26,5 +26,5 @@ public interface SnapClassroomMaterialRepository extends JpaRepository<SnapClass
     Optional<SnapClassroomMaterial> findByIdAndIsDeletedFalse(UUID id);
 
     @EntityGraph(attributePaths = {"snapLessons"})
-    List<SnapClassroomMaterial> findByClassroomIdOrderByMaterialOrderAsc(UUID classroomId);
+    List<SnapClassroomMaterial> findByClassroomIdAndIsDeletedFalseOrderByMaterialOrderAsc(UUID classroomId);
 }

@@ -475,8 +475,7 @@ public class ClassroomServiceImpl implements ClassroomService {
                                 "Không tìm thấy lớp học"
                         )
                 );
-
-        List<SnapClassroomMaterial> materials = snapClassroomMaterialRepository.findByClassroomIdOrderByMaterialOrderAsc(classroom.getId());
+        List<SnapClassroomMaterial> materials = snapClassroomMaterialRepository.findByClassroomIdAndIsDeletedFalseOrderByMaterialOrderAsc(classroom.getId());
         return materials.stream()
                 .map(material -> {
                     List<ClassroomSnapMaterialResponse.SnapLessonResponse> lessons = material.getSnapLessons()
