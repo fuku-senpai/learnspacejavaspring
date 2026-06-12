@@ -27,4 +27,5 @@ public interface TeacherProfileRepository extends JpaRepository<TeacherProfile, 
             """)
     Page<TeacherProfile> getAllTeacher(String keyword, Pageable pageable);
     Optional<TeacherProfile> findByIdAndIsDeletedFalse(UUID id);
+
 }
