@@ -14,6 +14,7 @@ public interface LessonRepository extends JpaRepository<Lesson, UUID> {
         )
         FROM Lesson l
         WHERE l.material.id = :materialId
+        AND l.isDeleted = false
         ORDER BY l.lessonOrder ASC
     """)
     List<LessonResponse> getLessonsByMaterialId(

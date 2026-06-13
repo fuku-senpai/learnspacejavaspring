@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.*;
 import phucitdev.course.modules.lessons.dto.CreateNewLessonRequest;
 import phucitdev.course.modules.lessons.dto.CreateNewLessonResponse;
 import phucitdev.course.modules.lessons.dto.LessonResponse;
+import phucitdev.course.modules.lessons.dto.UpdateLessonRequest;
 import phucitdev.course.modules.lessons.service.LessonService;
-
 import java.util.List;
 import java.util.UUID;
 
@@ -29,5 +29,22 @@ public class LessonAPI {
     public ResponseEntity<?> getLessons(@PathVariable("materialId") UUID materialId){
        List<LessonResponse> lessonResponseList = lessonService.findAllLessons(materialId);
        return ResponseEntity.ok(lessonResponseList);
+    }
+    @PutMapping("lesson/{lessonId}")
+    public ResponseEntity<?> updateLesson(
+            @PathVariable UUID lessonId,
+            @Valid
+            @RequestBody
+            UpdateLessonRequest request
+    ) {
+        return ResponseEntity.ok(
+                lessonService.updateLesson(lessonId, request)
+        );
+    }
+
+    @DeleteMapping("lesson/{lessonId}")
+    public ResponseEntity<?> deleteLesson(@PathVariable UUID lessonId) {
+        return ResponseEntity.ok(lessonService.deleteLesson(lessonId)
+        );
     }
 }

@@ -5,9 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import phucitdev.course.commo.base.BaseEntity;
-import phucitdev.course.modules.lessonResource.entity.LessonResource;
 import phucitdev.course.modules.material.entity.Material;
-import java.util.List;
 @Getter
 @Setter
 @AllArgsConstructor
