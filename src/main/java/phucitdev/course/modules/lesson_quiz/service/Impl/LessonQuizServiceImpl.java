@@ -30,9 +30,7 @@ import phucitdev.course.modules.snap_lesson.repository.SnapLessonRepository;
 import phucitdev.course.modules.snap_lessonquiz.entity.SnapLessonQuiz;
 import phucitdev.course.modules.snap_lessonquiz.repository.SnapLessonQuizRepository;
 import phucitdev.course.modules.teacherProfile.entity.TeacherProfile;
-
 import java.util.*;
-
 @Service
 public class LessonQuizServiceImpl implements LessonQuizService {
     @Autowired
@@ -52,11 +50,9 @@ public class LessonQuizServiceImpl implements LessonQuizService {
     @Override
     @Transactional
     public CreateLessonQuizResponse createQuiz(CreateLessonQuizRequest request) {
-
         validateQuestions(request);
         Account account = SecurityUtils.getCurrentAccount();
         TeacherProfile teacherProfile = account.getTeacher();
-
         LessonQuiz lessonQuiz = new LessonQuiz();
         lessonQuiz.setTitle(request.getTitle());
         lessonQuiz.setDescription(request.getDescription());
@@ -64,9 +60,7 @@ public class LessonQuizServiceImpl implements LessonQuizService {
         lessonQuiz.setPassScore(request.getPassScore());
         lessonQuiz.setQuizType(request.getQuizType());
         lessonQuiz.setTeacher(teacherProfile);
-
         lessonQuiz = lessonQuizRepository .save(lessonQuiz);
-
         for (QuestionRequest q : request.getQuestions()) {
             QuizQuestion question = new QuizQuestion();
             question.setContent(q.getContent());
@@ -93,7 +87,6 @@ public class LessonQuizServiceImpl implements LessonQuizService {
                 "Tạo đề thành công!"
         );
     }
-
     @Override
     public GetLessonQuizResponse getQuizzes(UUID quizId) {
         LessonQuiz quiz = lessonQuizRepository.findById(quizId).orElseThrow(() ->
@@ -143,11 +136,8 @@ public class LessonQuizServiceImpl implements LessonQuizService {
         Account currentAccount = SecurityUtils.getCurrentAccount();
         UUID studentId = currentAccount .getStudent() .getId();
         SnapLessonQuiz lessonQuiz = snapLessonQuizRepository.findById(snapLessonQuizId)
-                        .orElseThrow(() ->
-                                new NotFoundException("Quiz không tồn tại"));
-
+                        .orElseThrow(() -> new NotFoundException("Quiz không tồn tại"));
         LessonQuiz quiz = lessonQuiz.getLessonQuiz();
-
         long attemptCount = studentQuizSubmissionRepository.countBySnapLessonQuizIdAndStudentId( snapLessonQuizId, studentId );
         Integer maxAttempts = lessonQuiz.getMaxAttempts();
         if (maxAttempts != null && attemptCount >= maxAttempts) { throw new BadRequestException( "Bạn đã hết số lần làm bài" ); }
@@ -157,9 +147,7 @@ public class LessonQuizServiceImpl implements LessonQuizService {
         submission.setStudent( currentAccount.getStudent());
         submission.setStatus( SubmissionStatus.PENDING );
         submission = studentQuizSubmissionRepository.save(submission);
-
         List<StudentAnswerRequest> answers = request.getAnswers();
-
         boolean hasValidAnswer = answers != null && answers.stream().anyMatch(a ->
                 a.getQuestionId() != null &&
                         (a.getSelectedOptionId() != null || (a.getEssayAnswer() != null && !a.getEssayAnswer().isBlank()))
@@ -169,14 +157,8 @@ public class LessonQuizServiceImpl implements LessonQuizService {
             submission.setScore(0);
             submission.setPassed(false);
             submission.setStatus(SubmissionStatus.ABANDONED);
-
             studentQuizSubmissionRepository.save(submission);
-
-            return new SubmitQuizResponse(
-                    "Bạn chưa trả lời câu hỏi nào",
-                    0,
-                    false
-            );
+            return new SubmitQuizResponse("Bạn chưa trả lời câu hỏi nào", 0, false);
         }
         int totalScore = 0;
         // chống submit trùng question
