@@ -1,13 +1,23 @@
 package phucitdev.course.modules.lesson_quiz.service.Impl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import phucitdev.course.commo.exception.auth.BadRequestException;
 import phucitdev.course.commo.exception.classroom.NotFoundException;
 import phucitdev.course.modules.auth.entity.Account;
 import phucitdev.course.modules.auth.security.SecurityUtils;
 import phucitdev.course.modules.lesson_quiz.dto.*;
+import phucitdev.course.modules.lesson_quiz.dto.assignQuiz.*;
+import phucitdev.course.modules.lesson_quiz.dto.quiz_bank.OptionDetailResponse;
+import phucitdev.course.modules.lesson_quiz.dto.quiz_bank.QuestionDetailResponse;
+import phucitdev.course.modules.lesson_quiz.dto.quiz_bank.QuizDetailResponse;
+import phucitdev.course.modules.lesson_quiz.dto.quiz_bank.QuizListResponse;
 import phucitdev.course.modules.lesson_quiz.dto.result_quiz.OptionResultResponse;
 import phucitdev.course.modules.lesson_quiz.dto.result_quiz.QuestionResultResponse;
+import phucitdev.course.modules.lesson_quiz.dto.result_quiz.QuizAttemptResponse;
 import phucitdev.course.modules.lesson_quiz.dto.result_quiz.QuizResultResponse;
 import phucitdev.course.modules.lesson_quiz.dto.student_submit.StudentAnswerRequest;
 import phucitdev.course.modules.lesson_quiz.dto.student_submit.SubmitQuizRequest;
@@ -17,8 +27,12 @@ import phucitdev.course.modules.lesson_quiz.repository.*;
 import phucitdev.course.modules.lesson_quiz.service.LessonQuizService;
 import phucitdev.course.modules.snap_lesson.entity.SnapLesson;
 import phucitdev.course.modules.snap_lesson.repository.SnapLessonRepository;
-import java.util.List;
-import java.util.UUID;
+import phucitdev.course.modules.snap_lessonquiz.entity.SnapLessonQuiz;
+import phucitdev.course.modules.snap_lessonquiz.repository.SnapLessonQuizRepository;
+import phucitdev.course.modules.teacherProfile.entity.TeacherProfile;
+
+import java.util.*;
+
 @Service
 public class LessonQuizServiceImpl implements LessonQuizService {
     @Autowired
@@ -33,20 +47,25 @@ public class LessonQuizServiceImpl implements LessonQuizService {
     StudentQuizSubmissionRepository studentQuizSubmissionRepository;
     @Autowired
     StudentAnswerRepository studentAnswerRepository;
+    @Autowired
+    SnapLessonQuizRepository  snapLessonQuizRepository;
     @Override
+    @Transactional
     public CreateLessonQuizResponse createQuiz(CreateLessonQuizRequest request) {
+
         validateQuestions(request);
-        SnapLesson snapLesson = snapLessonRepository.findById(request.getSnapLessonId())
-                        .orElseThrow(() -> new NotFoundException("SnapLesson không tồn tại"));
+        Account account = SecurityUtils.getCurrentAccount();
+        TeacherProfile teacherProfile = account.getTeacher();
+
         LessonQuiz lessonQuiz = new LessonQuiz();
         lessonQuiz.setTitle(request.getTitle());
         lessonQuiz.setDescription(request.getDescription());
         lessonQuiz.setDurationMinutes(request.getDurationMinutes());
         lessonQuiz.setPassScore(request.getPassScore());
         lessonQuiz.setQuizType(request.getQuizType());
-        lessonQuiz.setSnapLesson(snapLesson);
+        lessonQuiz.setTeacher(teacherProfile);
 
-        lessonQuizRepository.save(lessonQuiz);
+        lessonQuiz = lessonQuizRepository .save(lessonQuiz);
 
         for (QuestionRequest q : request.getQuestions()) {
             QuizQuestion question = new QuizQuestion();
@@ -120,31 +139,46 @@ public class LessonQuizServiceImpl implements LessonQuizService {
     }
 
     @Override
-    public SubmitQuizResponse submitQuiz(UUID quizId, SubmitQuizRequest request) {
+    public SubmitQuizResponse submitQuiz(UUID snapLessonQuizId, SubmitQuizRequest request) {
         Account currentAccount = SecurityUtils.getCurrentAccount();
-        LessonQuiz quiz = lessonQuizRepository.findById(quizId).orElseThrow(() ->
-                                new NotFoundException("Quiz không tồn tại")
-                        );
-        // check submit rồi chưa
-        boolean submitted = studentQuizSubmissionRepository.existsByLessonQuizIdAndStudentId(
-                                quizId, currentAccount.getStudent().getId());
-        if (submitted) {
-            throw new BadRequestException(
-                    "Bạn đã nộp bài rồi"
-            );
-        }
+        UUID studentId = currentAccount .getStudent() .getId();
+        SnapLessonQuiz lessonQuiz = snapLessonQuizRepository.findById(snapLessonQuizId)
+                        .orElseThrow(() ->
+                                new NotFoundException("Quiz không tồn tại"));
+
+        LessonQuiz quiz = lessonQuiz.getLessonQuiz();
+
+        long attemptCount = studentQuizSubmissionRepository.countBySnapLessonQuizIdAndStudentId( snapLessonQuizId, studentId );
+        Integer maxAttempts = lessonQuiz.getMaxAttempts();
+        if (maxAttempts != null && attemptCount >= maxAttempts) { throw new BadRequestException( "Bạn đã hết số lần làm bài" ); }
+        // tạo submission
         StudentQuizSubmission submission = new StudentQuizSubmission();
-        submission.setLessonQuiz(quiz);
-        submission.setStudent(currentAccount.getStudent());
+        submission.setSnapLessonQuiz( lessonQuiz );
+        submission.setStudent( currentAccount.getStudent());
+        submission.setStatus( SubmissionStatus.PENDING );
         submission = studentQuizSubmissionRepository.save(submission);
         int totalScore = 0;
+        // chống submit trùng question
+        Set<UUID> answeredQuestions = new HashSet<>();
         // MULTIPLE_CHOICE
         if (quiz.getQuizType() == QuizType.MULTIPLE_CHOICE) {
             for (StudentAnswerRequest answerRequest : request.getAnswers()) {
                 QuizQuestion question = quizQuestionRepository.findById(answerRequest.getQuestionId())
                                 .orElseThrow(() -> new NotFoundException("Question không tồn tại"));
+                if (!question.getQuiz().getId().equals(quiz.getId())) {
+                    throw new BadRequestException( "Câu hỏi không thuộc quiz" );
+                }
+//               Chống trả lời trùng câu hỏi
+                if (!answeredQuestions.add( question.getId())) {
+                    throw new BadRequestException( "Không được trả lời trùng câu hỏi" );
+                }
+
                 QuestionOption selectedOption = questionOptionRepository.findById(answerRequest.getSelectedOptionId())
                                 .orElseThrow(() -> new NotFoundException("Đáp án không tồn tại"));
+                // check option thuộc question
+                if (!selectedOption.getQuestion().getId().equals(question.getId())) {
+                    throw new BadRequestException( "Đáp án không thuộc câu hỏi" );
+                }
                 boolean correct = Boolean.TRUE.equals(selectedOption.getCorrect());
                 StudentAnswer studentAnswer = new StudentAnswer();
                 studentAnswer.setSubmission(submission);
@@ -170,6 +204,18 @@ public class LessonQuizServiceImpl implements LessonQuizService {
             for (StudentAnswerRequest answerRequest : request.getAnswers()) {
                 QuizQuestion question = quizQuestionRepository.findById(answerRequest.getQuestionId())
                                 .orElseThrow(() -> new NotFoundException("Question không tồn tại"));
+                // check question thuộc quiz
+                if (!question.getQuiz().getId().equals(quiz.getId())) {
+                    throw new BadRequestException( "Câu hỏi không thuộc quiz" );
+                }
+                // chống duplicate
+                if (!answeredQuestions.add( question.getId())) {
+                    throw new BadRequestException( "Không được trả lời trùng câu hỏi" );
+                }
+                if (answerRequest.getEssayAnswer() == null || answerRequest.getEssayAnswer().isBlank()) {
+                    throw new BadRequestException( "Không được bỏ trống câu trả lời" );
+                }
+
                 StudentAnswer studentAnswer = new StudentAnswer();
                 studentAnswer.setSubmission(submission);
                 studentAnswer.setQuestion(question);
@@ -186,90 +232,240 @@ public class LessonQuizServiceImpl implements LessonQuizService {
     }
 
     @Override
-    public QuizResultResponse getQuizResult(
-            UUID quizId
-    ) {
-
-        Account currentAccount =
-                SecurityUtils
-                        .getCurrentAccount();
-
-        StudentQuizSubmission
-                submission =
-                studentQuizSubmissionRepository
-                        .findByLessonQuizIdAndStudentId(
-                                quizId,
-                                currentAccount
-                                        .getStudent()
-                                        .getId()
-                        )
-                        .orElseThrow(() ->
-                                new NotFoundException(
-                                        "Bạn chưa nộp bài này"
-                                )
+    @Transactional(readOnly = true)
+    public QuizResultResponse getQuizResult(UUID snapLessonQuizId) {
+        Account currentAccount = SecurityUtils.getCurrentAccount();
+        UUID studentId = currentAccount.getStudent().getId();
+        List<StudentQuizSubmission> submissions = studentQuizSubmissionRepository
+                        .findAllBySnapLessonQuizIdAndStudentIdOrderByCreatedAtDesc(
+                                snapLessonQuizId,
+                                studentId
                         );
 
-        LessonQuiz quiz =
-                submission.getLessonQuiz();
+        if (submissions.isEmpty()) {
+            throw new NotFoundException("Bạn chưa nộp bài này");
+        }
 
-        // chưa nộp
-        if (submission.getStatus() == null) {
+        LessonQuiz quiz = submissions.get(0).getSnapLessonQuiz().getLessonQuiz();
+        List<QuizAttemptResponse> attempts = new ArrayList<>();
+        int totalAttempts = submissions.size();
+        for (int i = 0; i < totalAttempts; i++) {
+            StudentQuizSubmission submission = submissions.get(i);
+            List<QuestionResultResponse> questions = submission.getAnswers()
+                            .stream()
+                            .map(answer -> {
+                                QuizQuestion question =
+                                        answer.getQuestion();
 
-            return new QuizResultResponse(
-                    submission.getId(),
-                    quiz.getId(),
-                    quiz.getTitle(),
-                    null,
-                    quiz.getPassScore(),
-                    false,
-                    "NOT_SUBMITTED",
-                    List.of()
+                                return new QuestionResultResponse(
+                                        question.getId(),
+                                        question.getContent(),
+                                        question.getPoints(),
+                                        answer.getCorrect(),
+
+                                        answer.getSelectedOption()
+                                                != null
+                                                ? answer
+                                                .getSelectedOption()
+                                                .getId()
+                                                : null,
+
+                                        answer.getEssayAnswer(),
+
+                                        question.getOptions()
+                                                .stream()
+                                                .map(option ->
+                                                        new OptionResultResponse(
+                                                                option.getId(),
+                                                                option.getContent(),
+                                                                option.getCorrect()
+                                                        )
+                                                )
+                                                .toList()
+                                );
+                            })
+                            .toList();
+
+            attempts.add(
+                    new QuizAttemptResponse(
+                            submission.getId(),
+
+                            // lần làm
+                            totalAttempts - i,
+
+                            submission.getScore(),
+                            submission.getPassed(),
+
+                            submission.getStatus()
+                                    .name(),
+
+                            submission.getCreatedAt(),
+
+                            questions
+                    )
             );
         }
 
-        List<QuestionResultResponse>
-                questions =
-                submission.getAnswers()
-                        .stream()
-                        .map(answer -> {
-
-                            QuizQuestion question =
-                                    answer.getQuestion();
-
-                            return new QuestionResultResponse(
-                                    question.getId(),
-                                    question.getContent(),
-                                    question.getPoints(),
-                                    answer.getCorrect(),
-                                    answer.getSelectedOption() != null
-                                            ? answer.getSelectedOption().getId()
-                                            : null,
-                                    answer.getEssayAnswer(),
-                                    question.getOptions()
-                                            .stream()
-                                            .map(option ->
-                                                    new OptionResultResponse(
-                                                            option.getId(),
-                                                            option.getContent(),
-                                                            option.getCorrect()
-                                                    )
-                                            )
-                                            .toList()
-                            );
-                        })
-                        .toList();
-
         return new QuizResultResponse(
-                submission.getId(),
                 quiz.getId(),
                 quiz.getTitle(),
-                submission.getScore(),
                 quiz.getPassScore(),
-                submission.getPassed(),
-                submission.getStatus().name(),
+                attempts
+        );
+    }
+
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<QuizListResponse> getMyQuizzes(int page, int size, String title, QuizType quizType) {
+        Account currentAccount = SecurityUtils.getCurrentAccount();
+        UUID teacherId = currentAccount.getTeacher().getId();
+        Pageable pageable = PageRequest.of(page, size);
+        return lessonQuizRepository
+                .getTeacherQuizzes(
+                        teacherId,
+                        title,
+                        quizType,
+                        pageable
+                );
+    }
+
+    @Transactional
+    @Override
+    public AssignQuizResponse assignQuiz(AssignQuizRequest request) {
+        Account currentAccount = SecurityUtils.getCurrentAccount();
+        UUID teacherId = currentAccount.getTeacher().getId();
+        SnapLesson snapLesson = snapLessonRepository.findById(request.getSnapLessonId())
+                        .orElseThrow(() -> new NotFoundException("Lesson không tồn tại"));
+        LessonQuiz lessonQuiz = lessonQuizRepository.findByIdAndTeacherId(request.getLessonQuizId(), teacherId)
+                        .orElseThrow(() ->
+                                new NotFoundException(
+                                        "Quiz không tồn tại hoặc không thuộc về bạn"
+                                ));
+
+        // chống assign trùng
+        boolean exists = snapLessonQuizRepository.existsBySnapLessonIdAndLessonQuizId(
+                                request.getSnapLessonId(),
+                                request.getLessonQuizId()
+                        );
+
+        if (exists) {
+            throw new BadRequestException(
+                    "Quiz đã được gán vào lesson"
+            );
+        }
+
+        SnapLessonQuiz mapping = new SnapLessonQuiz();
+        mapping.setSnapLesson(snapLesson);
+        mapping.setLessonQuiz(lessonQuiz);
+        mapping.setRequired(request.getRequired());
+        mapping.setMaxAttempts(request.getMaxAttempts());
+        mapping.setDisplayOrder(request.getDisplayOrder());
+        snapLessonQuizRepository.save(mapping);
+        return new AssignQuizResponse("Gán quiz thành công");
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<LessonAssignedQuizResponse> getAssignedQuizzes(UUID snapLessonId) {
+        snapLessonRepository.findById(snapLessonId)
+                .orElseThrow(() -> new NotFoundException("Buổi học không tồn tại"));
+        return snapLessonQuizRepository.getAssignedQuizzesByLesson(snapLessonId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public QuizDetailResponse getQuizDetail(UUID quizId) {
+        Account currentAccount = SecurityUtils.getCurrentAccount();
+        UUID teacherId = currentAccount.getTeacher().getId();
+        LessonQuiz quiz = lessonQuizRepository.findByIdAndTeacherId(quizId, teacherId)
+                        .orElseThrow(() ->
+                                new NotFoundException("Không tìm thấy quiz")
+                        );
+
+        List<QuestionDetailResponse> questions =
+                quiz.getQuestions()
+                        .stream()
+                        .map(question ->
+                                new QuestionDetailResponse(
+                                        question.getId(),
+                                        question.getContent(),
+                                        question.getPoints(),
+                                        question.getEssayAnswer(),
+
+                                        question.getOptions()
+                                                .stream()
+                                                .map(option ->
+                                                        new OptionDetailResponse(
+                                                                option.getId(),
+                                                                option.getContent(),
+                                                                option.getCorrect()
+                                                        )
+                                                )
+                                                .toList()
+                                )
+                        )
+                        .toList();
+
+        return new QuizDetailResponse(
+                quiz.getId(),
+                quiz.getTitle(),
+                quiz.getDescription(),
+                quiz.getDurationMinutes(),
+                quiz.getPassScore(),
+                quiz.getQuizType(),
                 questions
         );
     }
+
+    @Transactional
+    @Override
+    public UpdateAssignedQuizResponse updateAssignedQuiz(UUID snapLessonQuizId, UpdateAssignedQuizRequest request) {
+        Account currentAccount = SecurityUtils.getCurrentAccount();
+        UUID teacherId = currentAccount.getTeacher().getId();
+        SnapLessonQuiz mapping = snapLessonQuizRepository.findById(snapLessonQuizId)
+                        .orElseThrow(() ->
+                                new NotFoundException("Quiz gán không tồn tại"));
+        // check quiz thuộc teacher
+        LessonQuiz lessonQuiz =
+                lessonQuizRepository
+                        .findByIdAndTeacherId(
+                                request.getLessonQuizId(),
+                                teacherId
+                        )
+                        .orElseThrow(() ->
+                                new NotFoundException(
+                                        "Quiz không tồn tại hoặc không thuộc về bạn"
+                                ));
+
+        // chống duplicate
+        boolean exists =
+                snapLessonQuizRepository
+                        .existsBySnapLessonIdAndLessonQuizIdAndIdNot(
+                                mapping
+                                        .getSnapLesson()
+                                        .getId(),
+                                request
+                                        .getLessonQuizId(),
+                                snapLessonQuizId
+                        );
+
+        if (exists) {
+            throw new BadRequestException("Quiz đã được gán vào lesson");
+        }
+        mapping.setLessonQuiz(lessonQuiz);
+        if (request.getRequired() != null) {
+            mapping.setRequired(request.getRequired());
+        }
+        if (request.getMaxAttempts() != null) {
+            mapping.setMaxAttempts(request.getMaxAttempts());
+        }
+        mapping.setDisplayOrder(request.getDisplayOrder());
+        snapLessonQuizRepository.save(mapping);
+        return new UpdateAssignedQuizResponse("Cập nhật thành công!");
+    }
+
 
     private void validateQuestions(CreateLessonQuizRequest request) {
         for (QuestionRequest q :

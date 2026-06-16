@@ -505,22 +505,22 @@ public class ClassroomServiceImpl implements ClassroomService {
                                                                             video.getId()
                                                                     )
                                                             )
-                                                            .toList(),
+                                                            .toList()
 
                                                     // lesson quizzes
-                                                    lesson.getLessonQuizzes()
-                                                            .stream()
-                                                            .map(quiz ->
-                                                                    new ClassroomSnapMaterialResponse
-                                                                            .LessonQuizResponse(
-                                                                            quiz.getId(),
-                                                                            quiz.getTitle(),
-                                                                            quiz.getDescription(),
-                                                                            quiz.getDurationMinutes(),
-                                                                            quiz.getPassScore()
-                                                                    )
-                                                            )
-                                                            .toList()
+//                                                    lesson.getLessonQuizzes()
+//                                                            .stream()
+//                                                            .map(quiz ->
+//                                                                    new ClassroomSnapMaterialResponse
+//                                                                            .LessonQuizResponse(
+//                                                                            quiz.getId(),
+//                                                                            quiz.getTitle(),
+//                                                                            quiz.getDescription(),
+//                                                                            quiz.getDurationMinutes(),
+//                                                                            quiz.getPassScore()
+//                                                                    )
+//                                                            )
+//                                                            .toList()
                                             )
                                     )
                                     .toList();

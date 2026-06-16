@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import phucitdev.course.commo.base.BaseEntity;
+import phucitdev.course.modules.snap_lessonquiz.entity.SnapLessonQuiz;
 import phucitdev.course.modules.studentProfile.entity.StudentProfile;
 
 import java.util.ArrayList;
@@ -18,10 +19,15 @@ import java.util.List;
 @AllArgsConstructor
 public class StudentQuizSubmission extends BaseEntity {
 
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "quiz_id", nullable = false)
+//    private LessonQuiz lessonQuiz;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "quiz_id", nullable = false)
-    private LessonQuiz lessonQuiz;
-
+    @JoinColumn(
+        name = "snap_lesson_quiz_id",
+        nullable = false
+    )
+    private SnapLessonQuiz snapLessonQuiz;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "student_id", nullable = false)
     private StudentProfile student;

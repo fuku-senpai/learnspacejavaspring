@@ -10,6 +10,7 @@ import phucitdev.course.modules.lessonResource.entity.LessonResource;
 import phucitdev.course.modules.lessonVideo.entity.LessonVideo;
 import phucitdev.course.modules.lesson_quiz.entity.LessonQuiz;
 import phucitdev.course.modules.snap_classroommaterial.entity.SnapClassroomMaterial;
+import phucitdev.course.modules.snap_lessonquiz.entity.SnapLessonQuiz;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,8 +42,12 @@ public class SnapLesson extends BaseEntity {
     @OneToMany(mappedBy = "snapLesson", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LessonResource> lessonResources = new ArrayList<>();
 
-    @OneToMany(mappedBy = "snapLesson", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<LessonQuiz>  lessonQuizzes = new ArrayList<>();
+    @OneToMany(
+            mappedBy = "snapLesson",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<SnapLessonQuiz> quizzes = new ArrayList<>();
 }
 
 

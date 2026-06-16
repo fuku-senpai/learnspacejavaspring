@@ -33,7 +33,7 @@ public class ClassroomSnapMaterialResponse {
         // thêm lesson videos
         private List<LessonVideoResponse> lessonVideos;
         // lesson quizzes
-        private List<LessonQuizResponse> lessonQuizzes;
+//        private List<LessonQuizResponse> lessonQuizzes;
     }
     @Getter
     @Setter
@@ -42,16 +42,16 @@ public class ClassroomSnapMaterialResponse {
     public static class LessonVideoResponse {
         private UUID lessonVideoId;
     }
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class LessonQuizResponse {
-
-        private UUID quizId;
-        private String title;
-        private String description;
-        private Integer durationMinutes;
-        private Integer passScore;
-    }
+//    @Getter
+//    @Setter
+//    @NoArgsConstructor
+//    @AllArgsConstructor
+//    public static class LessonQuizResponse {
+//
+//        private UUID quizId;
+//        private String title;
+//        private String description;
+//        private Integer durationMinutes;
+//        private Integer passScore;
+//    }
 }

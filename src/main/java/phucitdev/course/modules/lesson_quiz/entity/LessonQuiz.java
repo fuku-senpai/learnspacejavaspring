@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import phucitdev.course.commo.base.BaseEntity;
 import phucitdev.course.modules.snap_lesson.entity.SnapLesson;
+import phucitdev.course.modules.snap_lessonquiz.entity.SnapLessonQuiz;
+import phucitdev.course.modules.teacherProfile.entity.TeacherProfile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,13 +26,19 @@ public class LessonQuiz extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private QuizType quizType;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "snap_lesson_id", nullable = false)
+//    private SnapLesson snapLesson;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "snap_lesson_id", nullable = false)
-    private SnapLesson snapLesson;
+    @JoinColumn(name = "teacher_id")
+    private TeacherProfile teacher;
 
     @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<QuizQuestion> questions = new ArrayList<>();
 
+//    @OneToMany(mappedBy = "lessonQuiz")
+//    private List<StudentQuizSubmission> submissions = new ArrayList<>();
     @OneToMany(mappedBy = "lessonQuiz")
-    private List<StudentQuizSubmission> submissions = new ArrayList<>();
+    private List<SnapLessonQuiz> snapLessonQuizzes = new ArrayList<>();
+
 }

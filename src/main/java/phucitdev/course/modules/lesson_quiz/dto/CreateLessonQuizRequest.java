@@ -18,8 +18,7 @@ public class CreateLessonQuizRequest {
 
     private String description;
 
-    @NotNull(message = "SnapLessonId không được để trống")
-    private UUID snapLessonId;
+
 
     @Min(value = 1, message = "Thời gian phải lớn hơn 0")
     private Integer durationMinutes;
