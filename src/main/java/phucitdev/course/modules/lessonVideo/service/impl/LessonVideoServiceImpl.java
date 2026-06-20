@@ -1,10 +1,9 @@
 package phucitdev.course.modules.lessonVideo.service.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import phucitdev.course.commo.exception.classroom.NotFoundException;
-import phucitdev.course.modules.lessonVideo.dto.CreateLessonVideoRequest;
-import phucitdev.course.modules.lessonVideo.dto.CreateLessonVideoResponse;
-import phucitdev.course.modules.lessonVideo.dto.GetLessonVideoResponse;
+import phucitdev.course.modules.lessonVideo.dto.*;
 import phucitdev.course.modules.lessonVideo.entity.LessonVideo;
 import phucitdev.course.modules.lessonVideo.entity.VideoType;
 import phucitdev.course.modules.lessonVideo.repository.LessonVideoRepository;
@@ -59,7 +58,7 @@ public class LessonVideoServiceImpl implements LessonVideoService {
         List<LessonVideo> lessonVideos;
         if (videoType != null) {
             lessonVideos = lessonVideoRepository
-                    .findBySnapLessonIdAndVideoType(
+                    .findBySnapLessonIdAndVideoTypeAndIsDeletedFalse(
                             snapLessonId,
                             videoType
                     );
@@ -82,5 +81,25 @@ public class LessonVideoServiceImpl implements LessonVideoService {
                                 )
                 ))
                 .toList();
+    }
+
+    @Override
+    public DeleteLessonVideoResponse deleteVideo(UUID lessonVideoId) {
+        LessonVideo lessonVideo = lessonVideoRepository.findLessonVideoById(lessonVideoId)
+                .orElseThrow(() ->
+                        new NotFoundException("LessonVideo không tồn tại"));
+        lessonVideo.setIsDeleted(true);
+        lessonVideoRepository.save(lessonVideo);
+        return new DeleteLessonVideoResponse("Xoá video thành công!");
+    }
+
+    @Override
+    @Transactional
+    public UpdateLessonVideoResponse updateLessonVideo(UUID lessonVideoId, UpdateLessonVideoRequest updateLessonVideoRequest) {
+        LessonVideo lessonVideo = lessonVideoRepository.findLessonVideoById(lessonVideoId)
+                .orElseThrow(() -> new NotFoundException("LessonVideo không tồn tại"));
+        lessonVideo.setTitle(updateLessonVideoRequest.getTitle());
+        lessonVideo.setVideoType(updateLessonVideoRequest.getVideoType());
+        return new UpdateLessonVideoResponse("Cập nhật thông tin thành công!");
     }
 }

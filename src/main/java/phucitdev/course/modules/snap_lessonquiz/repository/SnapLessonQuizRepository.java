@@ -7,6 +7,7 @@ import phucitdev.course.modules.lesson_quiz.dto.assignQuiz.LessonAssignedQuizRes
 import phucitdev.course.modules.snap_lessonquiz.entity.SnapLessonQuiz;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface SnapLessonQuizRepository extends JpaRepository<SnapLessonQuiz, UUID> {
@@ -41,4 +42,5 @@ public interface SnapLessonQuizRepository extends JpaRepository<SnapLessonQuiz, 
             UUID lessonQuizId,
             UUID id
     );
+    Optional<SnapLessonQuiz> findSnapLessonQuizById(UUID snapLessonQuizId);
 }

@@ -8,6 +8,7 @@ import phucitdev.course.modules.lessonVideo.entity.LessonVideo;
 import phucitdev.course.modules.lessonVideo.entity.VideoType;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface LessonVideoRepository extends JpaRepository<LessonVideo, UUID> {
@@ -27,7 +28,8 @@ public interface LessonVideoRepository extends JpaRepository<LessonVideo, UUID> 
 //            @Param("snapLessonId") UUID snapLessonId
 //    );
     List<LessonVideo> findBySnapLessonId(UUID snapLessonId);
-    List<LessonVideo> findBySnapLessonIdAndVideoType(UUID snapLessonId, VideoType videoType);
+    List<LessonVideo> findBySnapLessonIdAndVideoTypeAndIsDeletedFalse(UUID snapLessonId, VideoType videoType);
+    Optional<LessonVideo> findLessonVideoById(UUID lessonVideoId);
 //    @Query("""
 //    SELECT new phucitdev.course.modules.lessonVideo.dto.GetLessonVideoResponse(
 //        lv.id,

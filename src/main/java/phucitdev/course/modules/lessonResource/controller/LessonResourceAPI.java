@@ -4,14 +4,10 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import phucitdev.course.modules.lessonResource.dto.CreateLessonResourceRequest;
-import phucitdev.course.modules.lessonResource.dto.CreateLessonResourceResponse;
-import phucitdev.course.modules.lessonResource.dto.GetLessonResourceResponse;
+import phucitdev.course.modules.lessonResource.dto.*;
 import phucitdev.course.modules.lessonResource.service.LessonResourceService;
-
 import java.util.List;
 import java.util.UUID;
-
 @RestController
 @CrossOrigin("*")
 @RequestMapping("/api")
@@ -29,5 +25,14 @@ public class LessonResourceAPI {
         List<GetLessonResourceResponse> response = lessonResourceService.getLessonResources(snapLessonId);
         return ResponseEntity.ok().body(response);
     }
-
+    @DeleteMapping("/lessonResource/{lessonResourceId}")
+    public ResponseEntity<?> deleteLessonResource(@PathVariable("lessonResourceId") UUID lessonResourceId) {
+        DeleteLessonResourceResponse response = lessonResourceService.deleteLessonResource(lessonResourceId);
+        return ResponseEntity.ok().body(response);
+    }
+    @PutMapping("/lessonResource/{lessonResourceId}")
+    public ResponseEntity<?> updateLessonResource(@PathVariable("lessonResourceId") UUID lessonResourceId, @Valid @RequestBody UpdateLessonResourceRequest request) {
+         UpdateLessonResourceResponse response = lessonResourceService.updateLessonResource(lessonResourceId, request);
+         return ResponseEntity.ok().body(response);
+    }
 }

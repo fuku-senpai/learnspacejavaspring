@@ -1,11 +1,10 @@
 package phucitdev.course.modules.lessonResource.service.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import phucitdev.course.commo.exception.classroom.NotFoundException;
 import phucitdev.course.modules.LessonResourceUrl.entity.LessonResourceUrl;
-import phucitdev.course.modules.lessonResource.dto.CreateLessonResourceRequest;
-import phucitdev.course.modules.lessonResource.dto.CreateLessonResourceResponse;
-import phucitdev.course.modules.lessonResource.dto.GetLessonResourceResponse;
+import phucitdev.course.modules.lessonResource.dto.*;
 import phucitdev.course.modules.lessonResource.entity.LessonResource;
 import phucitdev.course.modules.lessonResource.repository.LessonResourceRepository;
 import phucitdev.course.modules.lessonResource.service.LessonResourceService;
@@ -62,5 +61,22 @@ public class LessonResourceServiceImpl implements LessonResourceService {
                                 .toList()
                 ))
                 .toList();
+    }
+
+    @Override
+    public DeleteLessonResourceResponse deleteLessonResource(UUID lessonResourceId) {
+        LessonResource lessonResource = lessonResourceRepository.getLessonResourceById(lessonResourceId).orElseThrow(() -> new NotFoundException("Tài liệu không tồn tại"));
+        lessonResource.setIsDeleted(true);
+        lessonResourceRepository.save(lessonResource);
+        return new DeleteLessonResourceResponse("Xoá thành công!");
+    }
+
+    @Override
+    @Transactional
+    public UpdateLessonResourceResponse updateLessonResource(UUID lessonResourceId, UpdateLessonResourceRequest updateLessonResourceRequest) {
+        LessonResource lessonResource = lessonResourceRepository.getLessonResourceById(lessonResourceId).orElseThrow(() -> new NotFoundException("Tài liệu không tồn tại"));
+        lessonResource.setTitle(updateLessonResourceRequest.getTitle());
+        lessonResource.setNote(updateLessonResourceRequest.getNote());
+        return new UpdateLessonResourceResponse("Cập nhật thành công!");
     }
 }

@@ -10,7 +10,6 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 public class LessonAssignedQuizResponse {
-
     private UUID snapLessonQuizId;
 
     private UUID lessonQuizId;

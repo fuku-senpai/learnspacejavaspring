@@ -5,9 +5,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import phucitdev.course.modules.lessonVideo.dto.CreateLessonVideoRequest;
-import phucitdev.course.modules.lessonVideo.dto.CreateLessonVideoResponse;
-import phucitdev.course.modules.lessonVideo.dto.GetLessonVideoResponse;
+import phucitdev.course.modules.lessonVideo.dto.*;
 import phucitdev.course.modules.lessonVideo.entity.VideoType;
 import phucitdev.course.modules.lessonVideo.service.LessonVideoService;
 
@@ -31,5 +29,15 @@ public class LessonVideoAPI {
 //        List<GetLessonVideoResponse> response = lessonVideoService.getVideos(snapLessonId, type);
 //        return ResponseEntity.ok(response);
 //    }
+    @DeleteMapping("/lessonVideo/{lessonVideoId}")
+    public ResponseEntity<?> deleteVideo(@PathVariable("lessonVideoId") UUID lessonVideoId){
+        DeleteLessonVideoResponse response = lessonVideoService.deleteVideo(lessonVideoId);
+        return ResponseEntity.ok(response);
+    }
 
+    @PutMapping("/lessonVideo/{lessonVideoId}")
+    public ResponseEntity<UpdateLessonVideoResponse> updateLessonVideo(@PathVariable("lessonVideoId") UUID lessonVideoId, @Valid @RequestBody UpdateLessonVideoRequest request){
+           UpdateLessonVideoResponse response = lessonVideoService.updateLessonVideo(lessonVideoId, request);
+           return ResponseEntity.ok(response);
+    }
 }
